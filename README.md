@@ -15,7 +15,7 @@ Usage
 
 (d) Navigate to the directory containing skyplus.js and channels.json and 
 
-run "node skyplus \<Your SkyBox IP\> \<LocalPort\>"
+run "node skyplus.js \<Your SkyBox IP\> \<LocalPort\>"
 
 Browse to http://localhost:\<localPort\> in your browser!
 
