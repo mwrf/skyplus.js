@@ -13,7 +13,7 @@ Usage
 
 (c) Find the IP address of your Sky+HD box (Services > Settings > Network)
 
-(d) Navigate to the directory containing skyplus.js and channels.js and run "node skyplus <Sky Box IP> <Local Port>
+(d) Navigate to the directory containing skyplus.js and channels.json and run "node skyplus <Sky Box IP> <Local Port>
 
 Browse to http://localhost:<localPort> in your browser!
 
