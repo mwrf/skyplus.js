@@ -19,12 +19,14 @@ Browse to http://localhost:<localPort> in your browser!
 
 Channel list 
 ------------
-Included is the channel list for Irish viewers, should you be ina different Sky region, 
+Included is the channel list for Irish viewers, should you be in a different Sky region, 
 Get channels from http://tv.sky.com/channel/index (default) OR use the guide @ http://tv.sky.com/tv-guide
 and grab from the AJAX request made to http://tv.sky.com/channel/index/<Your area>
 
 TODO
 ------------
 Nicer Web interface
+
 Enable TV Guide
+
 Enable viewing and editing of Planner
