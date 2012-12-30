@@ -1,7 +1,7 @@
 skyplus.js
 ==========
 
-Web Server / Services for controlling a Sky+HD Box
+Web Client for controlling a Sky+HD Box
 
 Supports Pause / Play and Channel changing.
 
@@ -11,13 +11,13 @@ Usage
 
 (b) Clone this repo OR copy skyplus.js and channels.json to some directory
 
-(c) Find the IP address of your Sky+HD box (Services > Settings > Network)
-
 (d) Navigate to the directory containing skyplus.js and channels.json and 
 
-run "node skyplus.js \<Your SkyBox IP\> \<LocalPort\>"
+run "node skyplus.js <optional local port>"
 
-Browse to http://localhost:\<localPort\> in your browser!
+A Sky box will be autodetected on your network if one exists. 
+
+Browse to http://localhost:5555 in your browser!
 
 Channel list 
 ------------
