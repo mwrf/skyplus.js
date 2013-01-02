@@ -155,18 +155,16 @@ function doGUIRequest(initRes) {
 function getChannelTable() {
 	var table = '';
 	table += '<div class="datagrid"><table border="1" cellpadding="4">';
-	table += '<tr><th>Channel</th><th>Name</th><th>Action</th></tr>';
+	table += '<tr><th>Logo</th><th>Channel</th><th>Name</th><th>Action</th></tr>';
 
 	for (var i = 0; i < channels.length; i++) {
 		var channel = channels[i];
-		table += '<tr><td>' + channel.c[1] + '</td><td>' + channel.t + '</td><td><button type="button" onclick="channel(' + channel.c[0] + ')">Change</button></td></tr>';
+		table += '<tr><td> <img src="http://tv.sky.com/logo/80/35/skychb' + channel.c[0] + '.png"/> </td><td>' + channel.c[1] + '</td><td>' + channel.t + '</td><td><button type="button" onclick="channel(' + channel.c[0] + ')">Change</button></td></tr>';
 	}
 	return table += '</table><div>';
 };
 
-/*
- * 	Returns the JS for the button actions on the web client
- */
+/*  Returns the JS for the button actions on the web client */
 function getClientJavaScript() {
 	return 	'<script>' + 
 				'function play(){var req = new XMLHttpRequest(); req.open("GET","/play"); req.send()}' + 
@@ -175,25 +173,22 @@ function getClientJavaScript() {
 				'</script>';
 }
 
-/*
- * 	Attempts SSDP of Sky box on network, listening to all broadcasts.
- */
+/*	Listens to SSDP Broadcasts. */
 function discoverSkyBox() {
 	console.log("Detecting Sky Box on network, Please wait up to 30 seconds.......")
 	var server = dgram.createSocket("udp4");
 
 	server.on("message", function(msg, rinfo) {
+	   console.log("Broadcast from "+rinfo.address);
 		// User-Agent from Sky box is ALWAYS "redsonic". Use this to check if broadcast is from a Sky Box
 		if (String(msg).indexOf("redsonic") > 1) {
-
 			console.log("Sky Box detected at " + rinfo.address);
-
 			skyServiceHost = rinfo.address;
 			server.close();
-
 			startHTTPServer();
 		}
 	});
+	// SSDP Broadcasts to Port 1900
 	server.bind(1900);
 };
 
@@ -201,3 +196,4 @@ function discoverSkyBox() {
  * 	Start by looking for Sky boxes on the network
  */
 discoverSkyBox();
+startHTTPServer();
