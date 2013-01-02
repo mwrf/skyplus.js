@@ -20,6 +20,7 @@ var skyBoxDetected = false;
 var localPort = process.argv[2] || 5555;
 var httpServerRunning = false;
 
+
 /*
 * 	SOAP Request definitions
 */
@@ -96,7 +97,6 @@ function doSkyRequest(actions, servicePath, initRes, actionArgs) {
 function startHTTPServer() {
 
 	http.createServer(function(req, res) {
-
 		//ignore favicon requests
 		if (req.url === '/favicon.ico') {
 			return;
@@ -121,8 +121,18 @@ function startHTTPServer() {
 				console.log("Changing to channel ID " + channel);
 				doSkyRequest(channelActions, playServicePath, res, Number(channel).toString(16));
 				break;
+			case '/scheduled' : 
+			   var channel = url.parse(req.url, true).query.channel;
+            console.log("Scheduled for channel" + channel);
+            getChannelListings(channel,function(data){
+               var current = getCurrentScheduledProgram(data);
+               console.log('Current Program : ' + current);
+               res.end(current);
+            });
+            break;
 			default :
-				console.log("Bad Request");
+            
+				console.log("Bad Request to " + requestPath);
 				res.end('Bad Request');
 				break;
 		}
@@ -155,11 +165,12 @@ function doGUIRequest(initRes) {
 function getChannelTable() {
 	var table = '';
 	table += '<div class="datagrid"><table border="1" cellpadding="4">';
-	table += '<tr><th>Logo</th><th>Channel</th><th>Name</th><th>Action</th></tr>';
+	table += '<tr><th>Logo</th><th>Channel</th><th>Name</th><th>Action</th><th>Now Playing</th></tr>';
 
 	for (var i = 0; i < channels.length; i++) {
 		var channel = channels[i];
-		table += '<tr><td> <img src="http://tv.sky.com/logo/80/35/skychb' + channel.c[0] + '.png"/> </td><td>' + channel.c[1] + '</td><td>' + channel.t + '</td><td><button type="button" onclick="channel(' + channel.c[0] + ')">Change</button></td></tr>';
+		table += '<tr><td> <img src="http://tv.sky.com/logo/80/35/skychb' + channel.c[0] + '.png"/> </td><td>' + channel.c[1] + '</td><td>' + channel.t + 
+		'</td><td><button type="button" onclick="channel(' + channel.c[0] + ')">Change</button></td><td id="now' + channel.c[0] + '"><button type="button" onclick="nowplaying(' + channel.c[0] + ')">Query</button></td></tr>';
 	}
 	return table += '</table><div>';
 };
@@ -170,8 +181,9 @@ function getClientJavaScript() {
 				'function play(){var req = new XMLHttpRequest(); req.open("GET","/play"); req.send()}' + 
 				'function pause(){var req = new XMLHttpRequest(); req.open("GET","/pause"); req.send()}' + 
 				'function channel(num){var req = new XMLHttpRequest(); req.open("GET","/channel?channel="+num); req.send()}' +
+				'function nowplaying(num){var req = new XMLHttpRequest(); req.onreadystatechange = oncomplete(req,num); req.open("GET","/scheduled?channel="+num); req.send()}' +
 				'</script>';
-}
+};
 
 /*	Listens to SSDP Broadcasts. */
 function discoverSkyBox() {
@@ -191,6 +203,87 @@ function discoverSkyBox() {
 	// SSDP Broadcasts to Port 1900
 	server.bind(1900);
 };
+
+/* 1 to 01 etc.*/
+function zeroPad(n){
+   return n < 10 ? '0'+n : n;
+}
+
+/*
+* Fetches the days listings from Sky servers for any channel
+*/
+function getChannelListings(channel,callback){
+   
+   var listingsCount = 0;
+   var mergedListings = [];
+   
+   var now = new Date(),
+      year = now.getFullYear(),
+      month = zeroPad(now.getUTCMonth() + 1),
+      date = zeroPad(now.getUTCDate()),
+      fullDate = year +'-'+ month +'-'+ date;
+   
+   for (var i = 0; i < 4; i++){
+      var options = {
+        host: 'tv.sky.com',
+        port: 80,
+        path: '/programme/channel/' + channel +'/'+ fullDate + '/' + i + '.json'
+      };
+
+      var req = http.request(options, function(res) {
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+        
+          var parsed = JSON.parse(chunk);
+          listingsCount ++;
+          
+          for (var key in parsed.listings) {
+               if(key == channel){
+                  var progs = parsed.listings[channel];
+                  for(var j = 0; j < progs.length; j++) {
+                     mergedListings.push(progs[j]);
+                 }
+               }
+            }
+            if(listingsCount == 4){
+               console.log('Got Listings for channel '+ channel + ' No of programs: '+mergedListings.length )
+               callback(mergedListings);
+            }
+        });
+      });
+      req.end();
+   }
+};
+
+/* for sorting by time */
+function compare(a,b) {
+  if (a.s < b.s)
+     return -1;
+  if (a.s > b.s)
+    return 1;
+  return 0;
+}
+
+/*
+*  returns the current scheduled program
+*/
+function getCurrentScheduledProgram(progs){
+   var lastEntry;
+   var now = Math.round(+new Date()/1000);
+   progs.sort(compare);
+   
+   for (var i = 0; i < progs.length; i++){
+      var entry = progs[i];
+      if(entry.s < now){
+         lastEntry = entry;
+      }
+        // if the program is in the future then we want the last program we iterated over
+       if(entry.s > now){
+         return lastEntry.t
+      }
+   }
+};
+
 
 /*
  * 	Start by looking for Sky boxes on the network
