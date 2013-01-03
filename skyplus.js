@@ -232,9 +232,15 @@ function getChannelListings(channel,callback){
 
       var req = http.request(options, function(res) {
         res.setEncoding('utf8');
-        res.on('data', function (chunk) {
+        var chunks = "";
         
-          var parsed = JSON.parse(chunk);
+        res.on('data', function (chunk) {
+	        chunks = chunks + chunk;
+        });
+        
+        res.on('end', function () {
+        
+          var parsed = JSON.parse(chunks);
           listingsCount ++;
           
           for (var key in parsed.listings) {
