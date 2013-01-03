@@ -9,7 +9,7 @@ var dgram = require('dgram');
 /* get channels from http://tv.sky.com/channel/index (default) OR use the guide @ http://tv.sky.com/tv-guide
  * and grab from the AJAX request made to  http://tv.sky.com/channel/index/<Your area>
  */
-var channels = require('./htvwesthd.json').init.channels;
+var channels = require('./channels.json').init.channels;
 
 // Sky box
 var skyServiceHost = "";
