@@ -9,7 +9,7 @@ var dgram = require('dgram');
 /* get channels from http://tv.sky.com/channel/index (default) OR use the guide @ http://tv.sky.com/tv-guide
  * and grab from the AJAX request made to  http://tv.sky.com/channel/index/<Your area>
  */
-var channels = require('./channels.json').init.channels;
+var channels = require('./htvwesthd.json').init.channels;
 
 // Sky box
 var skyServiceHost = "";
@@ -232,9 +232,15 @@ function getChannelListings(channel,callback){
 
       var req = http.request(options, function(res) {
         res.setEncoding('utf8');
-        res.on('data', function (chunk) {
+        var chunks = "";
         
-          var parsed = JSON.parse(chunk);
+        res.on('data', function (chunk) {
+	        chunks = chunks + chunk;
+        });
+        
+        res.on('end', function () {
+        
+          var parsed = JSON.parse(chunks);
           listingsCount ++;
           
           for (var key in parsed.listings) {
