@@ -121,14 +121,14 @@ function startHTTPServer() {
 				console.log("Changing to channel ID " + channel);
 				doSkyRequest(channelActions, playServicePath, res, Number(channel).toString(16));
 				break;
-			case '/scheduled' : 
-			   var channel = url.parse(req.url, true).query.channel;
-            console.log("Scheduled for channel" + channel);
-            getChannelListings(channel,function(data){
-               var current = getCurrentScheduledProgram(data);
-               console.log('Current Program : ' + current);
-               res.end(current);
-            });
+			case '/scheduled' :
+				var channel = url.parse(req.url, true).query.channel;
+				console.log("Schedule called for channel: " + channel);
+				getChannelListings(channel, function(data) {
+					var current = getCurrentScheduledProgram(data);
+					console.log('Current Program : ' + current);
+					res.end(current);
+				}); 
             break;
 			default :
             
@@ -153,6 +153,7 @@ function doGUIRequest(initRes) {
 	initRes.write('<h3> Sky+HD Web Remote Beta </h3>');
 	initRes.write('<h5>Controlling Box at ' + skyServiceHost + '</h5>');
 	initRes.write('<h5>Controls</h5>');
+	initRes.write('<div id="nowplaying"></div>');
 	initRes.write('<button type="button" onclick="play()">Play</button>');
 	initRes.write('<button type="button" onclick="pause()">Pause</button><br>');
 	initRes.write(getChannelTable());
@@ -170,21 +171,26 @@ function getChannelTable() {
 	for (var i = 0; i < channels.length; i++) {
 		var channel = channels[i];
 		table += '<tr><td> <img src="http://tv.sky.com/logo/80/35/skychb' + channel.c[0] + '.png"/> </td><td>' + channel.c[1] + '</td><td>' + channel.t + 
-		'</td><td><button type="button" onclick="channel(' + channel.c[0] + ')">Change</button></td><td id="now' + channel.c[0] + '"><button type="button" onclick="nowplaying(' + channel.c[0] + ')">Query</button></td></tr>';
+		'</td><td><button type="button" onclick="channel(' + channel.c[0] + ')">Change</button></td> '+
+		'<td id="now' + channel.c[0] + '"><button type="button" onclick="now(' + channel.c[0] + ')">Query</button></td></tr>';
 	}
 	return table += '</table><div>';
 };
 
 /*  Returns the JS for the button actions on the web client */
 function getClientJavaScript() {
-	return 	'<script>' + 
-				'function play(){var req = new XMLHttpRequest(); req.open("GET","/play"); req.send()}' + 
-				'function pause(){var req = new XMLHttpRequest(); req.open("GET","/pause"); req.send()}' + 
-				'function channel(num){var req = new XMLHttpRequest(); req.open("GET","/channel?channel="+num); req.send()}' +
-				'function nowplaying(num){var req = new XMLHttpRequest(); req.onreadystatechange = oncomplete(req,num); req.open("GET","/scheduled?channel="+num); req.send()}' +
+	return 	'<script> \r\n'+
+				'function now(num){var req = new XMLHttpRequest(); \r\n'+
+					'req.onreadystatechange = function(){  \r\n'+
+						'if(req.readyState == 4 && req.status==200){ console.log(req.responseText) \r\n'+
+						'document.getElementById("now"+num).innerHTML = req.responseText}} \r\n ' +
+					'req.open("GET","/scheduled?channel="+num,true); req.send();} \r\n ' +
+				'function play(){var req = new XMLHttpRequest(); req.open("GET","/play"); req.send()}; \r\n ' + 
+				'function pause(){var req = new XMLHttpRequest(); req.open("GET","/pause"); req.send()}; \r\n ' + 
+				'function channel(num){var req = new XMLHttpRequest(); req.open("GET","/channel?channel="+num); req.send()}; \r\n ' +
 				'</script>';
 };
-
+//	'req.open("GET","/schedule?channel="+num,true); req.send();} ' +
 /*	Listens to SSDP Broadcasts. */
 function discoverSkyBox() {
 	console.log("Detecting Sky Box on network, Please wait up to 30 seconds.......")
