@@ -49,6 +49,17 @@ var playActions = {
 	}
 };
 
+var ffwActions = {
+	header : '"urn:schemas-nds-com:service:SkyPlay:2#Play"',
+	body : '<?xml version="1.0" encoding="utf-8"?>' +
+	'<s:Envelope s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>' +
+	'<u:Play xmlns:u="urn:schemas-nds-com:service:SkyPlay:2">' +
+	'<InstanceID>0</InstanceID><Speed>' + speed + '</Speed></u:Play></s:Body></s:Envelope>',
+	getBody : function(speed) {
+		return this.body;
+	}
+};
+
 var channelActions = {
 	header : '"urn:schemas-nds-com:service:SkyPlay:2#SetAVTransportURI"',
 	getBody : function(channel) {
@@ -121,6 +132,17 @@ function startHTTPServer() {
 				console.log("Changing to channel ID " + channel);
 				doSkyRequest(channelActions, playServicePath, res, Number(channel).toString(16));
 				break;
+			case '/ffw' :
+				var speed = url.parse(req.url, true).query.speed;
+				console.log("Fast forwarding at " + speed + "x speed");
+				doSkyRequest(ffwActions, playServicePath, res, Number(speed).toString(16));
+				break;
+			case '/skipAds' :
+				var speed = url.parse(req.url, true).query.speed;
+				console.log("Attempting to Skip adverts, playing in 7 seconds");
+				doSkyRequest(ffwActions, playServicePath, res, 30);
+				setTimout(function(){doSkyRequest(playActions, playServicePath, res)},7000);
+				break;
 			case '/scheduled' :
 				var channel = url.parse(req.url, true).query.channel;
 				console.log("Schedule called for channel: " + channel);
@@ -156,6 +178,7 @@ function doGUIRequest(initRes) {
 	initRes.write('<div id="nowplaying"></div>');
 	initRes.write('<button type="button" onclick="play()">Play</button>');
 	initRes.write('<button type="button" onclick="pause()">Pause</button><br>');
+	initRes.write('<button type="button" onclick="skipAds()">Skip Ads</button><br>');
 	initRes.write(getChannelTable());
 	initRes.end();
 };
@@ -187,6 +210,7 @@ function getClientJavaScript() {
 					'req.open("GET","/scheduled?channel="+num,true); req.send();} \r\n ' +
 				'function play(){var req = new XMLHttpRequest(); req.open("GET","/play"); req.send()}; \r\n ' + 
 				'function pause(){var req = new XMLHttpRequest(); req.open("GET","/pause"); req.send()}; \r\n ' + 
+				'function skipAds(){var req = new XMLHttpRequest(); req.open("GET","/skipAds"); req.send()}; \r\n ' + 
 				'function channel(num){var req = new XMLHttpRequest(); req.open("GET","/channel?channel="+num); req.send()}; \r\n ' +
 				'</script>';
 };
