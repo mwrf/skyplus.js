@@ -51,12 +51,11 @@ var playActions = {
 
 var ffwActions = {
 	header : '"urn:schemas-nds-com:service:SkyPlay:2#Play"',
-	body : '<?xml version="1.0" encoding="utf-8"?>' +
+	getBody : function(speed) {
+		return '<?xml version="1.0" encoding="utf-8"?>' +
 	'<s:Envelope s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>' +
 	'<u:Play xmlns:u="urn:schemas-nds-com:service:SkyPlay:2">' +
-	'<InstanceID>0</InstanceID><Speed>' + speed + '</Speed></u:Play></s:Body></s:Envelope>',
-	getBody : function(speed) {
-		return this.body;
+	'<InstanceID>0</InstanceID><Speed>' + speed + '</Speed></u:Play></s:Body></s:Envelope>';
 	}
 };
 
