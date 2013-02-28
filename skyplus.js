@@ -212,7 +212,7 @@ function getClientJavaScript() {
 				'function pause(){var req = new XMLHttpRequest(); req.open("GET","/pause"); req.send()}; \r\n ' + 
 				'function skipAds(){var req = new XMLHttpRequest(); req.open("GET","/skipAds"); req.send()}; \r\n ' + 
 				'function channel(num){var req = new XMLHttpRequest(); req.open("GET","/channel?channel="+num); req.send()}; \r\n ' +
-				'</script>';
+				'</script><script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js" type="text/javascript"></script>';
 };
 //	'req.open("GET","/schedule?channel="+num,true); req.send();} ' +
 /*	Listens to SSDP Broadcasts. */
